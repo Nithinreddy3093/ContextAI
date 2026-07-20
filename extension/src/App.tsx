@@ -1,64 +1,48 @@
 import { useState } from "react";
+import type { TabInfo } from "./types/tab";
+import { getCurrentTab } from "./services/chrome";
 import "./App.css";
 
 function App() {
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  const [domain, setDomain] = useState("");
-  const [siteType, setSiteType] = useState("");
-  const [time, setTime] = useState("");
+  const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
 
-  const analyzePage = async () => {
-    const tabs = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-
-    if (!tabs.length) return;
-
-    const currentTab = tabs[0];
-
-    const currentUrl = currentTab.url || "";
-    const hostname = new URL(currentUrl).hostname;
-
-    let type = "Other";
-
-    if (hostname.includes("github.com")) type = "GitHub";
-    else if (hostname.includes("linkedin.com")) type = "LinkedIn";
-    else if (hostname.includes("youtube.com")) type = "YouTube";
-
-    setTitle(currentTab.title || "No Title");
-    setUrl(currentUrl);
-    setDomain(hostname);
-    setSiteType(type);
-    setTime(new Date().toLocaleTimeString());
+  const handleAnalyze = async () => {
+    const info = await getCurrentTab();
+    setTabInfo(info);
   };
 
   return (
     <div className="app">
       <h1>🧠 ContextAI</h1>
-      <p>Your AI Browser Assistant</p>
+      <p className="subtitle">AI-Powered Browser Assistant</p>
 
-      <button onClick={analyzePage}>
+      <button className="analyze-btn" onClick={handleAnalyze}>
         Analyze Current Page
       </button>
 
-      {title && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Website</h3>
-          <p>{siteType}</p>
+      {tabInfo && (
+        <div className="card">
+          <h2>Analysis Result</h2>
 
-          <h3>Title</h3>
-          <p>{title}</p>
+          <div className="row">
+            <span>📄 Title</span>
+            <p>{tabInfo.title}</p>
+          </div>
 
-          <h3>Domain</h3>
-          <p>{domain}</p>
+          <div className="row">
+            <span>🌐 Website</span>
+            <p>{tabInfo.siteType}</p>
+          </div>
 
-          <h3>URL</h3>
-          <p>{url}</p>
+          <div className="row">
+            <span>🔗 Domain</span>
+            <p>{tabInfo.domain}</p>
+          </div>
 
-          <h3>Analyzed At</h3>
-          <p>{time}</p>
+          <div className="row">
+            <span>🕒 Analyzed</span>
+            <p>{tabInfo.analyzedAt}</p>
+          </div>
         </div>
       )}
     </div>
